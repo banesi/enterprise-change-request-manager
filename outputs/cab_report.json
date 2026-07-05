@@ -1,0 +1,10 @@
+{
+    "total_changes": 8,
+    "scheduled": 3,
+    "in_progress": 2,
+    "completed": 2,
+    "cancelled": 1,
+    "high_risk": 3,
+    "medium_risk": 3,
+    "low_risk": 2
+}

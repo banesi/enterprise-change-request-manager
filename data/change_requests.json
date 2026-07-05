@@ -1,0 +1,66 @@
+[
+    {
+        "change_id": "CR1001",
+        "customer": "ABC Bank",
+        "risk": "High",
+        "status": "Scheduled",
+        "description": "Upgrade ONTAP firmware on production cluster",
+        "planned_days": 3
+    },
+    {
+        "change_id": "CR1002",
+        "customer": "XYZ Finance",
+        "risk": "Medium",
+        "status": "In Progress",
+        "description": "Migrate CIFS shares to new SVM",
+        "planned_days": 5
+    },
+    {
+        "change_id": "CR1003",
+        "customer": "Global Retail",
+        "risk": "Low",
+        "status": "Completed",
+        "description": "Update backup policy retention",
+        "planned_days": 1
+    },
+    {
+        "change_id": "CR1004",
+        "customer": "HealthPlus",
+        "risk": "High",
+        "status": "Scheduled",
+        "description": "Perform storage controller failover test",
+        "planned_days": 2
+    },
+    {
+        "change_id": "CR1005",
+        "customer": "EduCloud",
+        "risk": "Medium",
+        "status": "Scheduled",
+        "description": "Expand aggregate capacity",
+        "planned_days": 4
+    },
+    {
+        "change_id": "CR1006",
+        "customer": "Metro Telecom",
+        "risk": "High",
+        "status": "In Progress",
+        "description": "Upgrade SAN switch firmware",
+        "planned_days": 6
+    },
+    {
+        "change_id": "CR1007",
+        "customer": "FinServe Corp",
+        "risk": "Low",
+        "status": "Cancelled",
+        "description": "Decommission unused test volume",
+        "planned_days": 1
+    },
+    {
+        "change_id": "CR1008",
+        "customer": "Neo Insurance",
+        "risk": "Medium",
+        "status": "Completed",
+        "description": "Update NFS export policy",
+        "planned_days": 2
+    }
+]

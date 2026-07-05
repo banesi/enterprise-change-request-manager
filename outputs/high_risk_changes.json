@@ -1,0 +1,26 @@
+[
+    {
+        "change_id": "CR1001",
+        "customer": "ABC Bank",
+        "risk": "High",
+        "status": "Scheduled",
+        "description": "Upgrade ONTAP firmware on production cluster",
+        "planned_days": 3
+    },
+    {
+        "change_id": "CR1004",
+        "customer": "HealthPlus",
+        "risk": "High",
+        "status": "Scheduled",
+        "description": "Perform storage controller failover test",
+        "planned_days": 2
+    },
+    {
+        "change_id": "CR1006",
+        "customer": "Metro Telecom",
+        "risk": "High",
+        "status": "In Progress",
+        "description": "Upgrade SAN switch firmware",
+        "planned_days": 6
+    }
+]

@@ -1,0 +1,837 @@
+# Practice Project: Enterprise Change Request Manager
+
+## 1. Project Goal
+
+Build a Python application that reads enterprise change requests from a JSON file, analyzes them, and generates reports for a Change Advisory Board.
+
+This project should prove that you can independently use:
+
+* Python classes
+* JSON file handling
+* Clean multi-file project structure
+* Error handling
+* Git workflow
+* README documentation
+
+No AI API should be used in this project.
+
+---
+
+# 2. Business Scenario
+
+You are part of an Enterprise Support team.
+
+Customers submit change requests for planned activities such as:
+
+* Storage firmware upgrades
+* Volume migrations
+* CIFS/NFS configuration changes
+* Security patching
+* Maintenance windows
+* Disaster recovery testing
+* Backup policy changes
+
+Your job is to build a system that helps the Change Advisory Board quickly understand:
+
+* How many change requests exist
+* Which changes are high risk
+* Which changes are scheduled
+* Which changes are completed
+* What customer notifications should be sent
+
+---
+
+# 3. Required Folder Structure
+
+Create this exact project structure:
+
+```text
+enterprise_change_request_manager/
+│
+├── data/
+│   └── change_requests.json
+│
+├── outputs/
+│   ├── cab_report.json
+│   ├── high_risk_changes.json
+│   └── customer_notifications.json
+│
+├── models.py
+├── managers.py
+├── file_handler.py
+├── main.py
+├── requirements.txt
+├── .gitignore
+└── README.md
+```
+
+---
+
+# 4. Sample Input File
+
+Create this file:
+
+```text
+data/change_requests.json
+```
+
+Use this sample input exactly first. Later you can add more records.
+
+```json
+[
+    {
+        "change_id": "CR1001",
+        "customer": "ABC Bank",
+        "risk": "High",
+        "status": "Scheduled",
+        "description": "Upgrade ONTAP firmware on production cluster",
+        "planned_days": 3
+    },
+    {
+        "change_id": "CR1002",
+        "customer": "XYZ Finance",
+        "risk": "Medium",
+        "status": "In Progress",
+        "description": "Migrate CIFS shares to new SVM",
+        "planned_days": 5
+    },
+    {
+        "change_id": "CR1003",
+        "customer": "Global Retail",
+        "risk": "Low",
+        "status": "Completed",
+        "description": "Update backup policy retention",
+        "planned_days": 1
+    },
+    {
+        "change_id": "CR1004",
+        "customer": "HealthPlus",
+        "risk": "High",
+        "status": "Scheduled",
+        "description": "Perform storage controller failover test",
+        "planned_days": 2
+    },
+    {
+        "change_id": "CR1005",
+        "customer": "EduCloud",
+        "risk": "Medium",
+        "status": "Scheduled",
+        "description": "Expand aggregate capacity",
+        "planned_days": 4
+    },
+    {
+        "change_id": "CR1006",
+        "customer": "Metro Telecom",
+        "risk": "High",
+        "status": "In Progress",
+        "description": "Upgrade SAN switch firmware",
+        "planned_days": 6
+    },
+    {
+        "change_id": "CR1007",
+        "customer": "FinServe Corp",
+        "risk": "Low",
+        "status": "Cancelled",
+        "description": "Decommission unused test volume",
+        "planned_days": 1
+    },
+    {
+        "change_id": "CR1008",
+        "customer": "Neo Insurance",
+        "risk": "Medium",
+        "status": "Completed",
+        "description": "Update NFS export policy",
+        "planned_days": 2
+    }
+]
+```
+
+---
+
+# 5. Expected Counts From Sample Input
+
+Your CAB report should calculate:
+
+```text
+total_changes = 8
+scheduled = 3
+in_progress = 2
+completed = 2
+cancelled = 1
+high_risk = 3
+medium_risk = 3
+low_risk = 2
+```
+
+---
+
+# 6. models.py Requirements
+
+Create this class:
+
+```python
+class ChangeRequest:
+```
+
+The class must store these attributes:
+
+```text
+change_id
+customer
+risk
+status
+description
+planned_days
+```
+
+## Required Methods
+
+### Method 1: `is_high_risk()`
+
+Purpose:
+
+Check whether the change request is high risk.
+
+Expected behavior:
+
+```text
+If risk is "High" → return True
+Otherwise → return False
+```
+
+Example:
+
+```python
+change.risk = "High"
+change.is_high_risk()
+```
+
+Expected result:
+
+```python
+True
+```
+
+---
+
+### Method 2: `generate_summary()`
+
+Purpose:
+
+Create a short internal summary for support/CAB teams.
+
+Expected format:
+
+```text
+CR1001 - ABC Bank - High Risk - Scheduled - Upgrade ONTAP firmware on production cluster
+```
+
+Format rule:
+
+```text
+change_id - customer - risk Risk - status - description
+```
+
+---
+
+### Method 3: `to_dict()`
+
+Purpose:
+
+Convert the object back into a dictionary so it can be saved into JSON output.
+
+Expected output example:
+
+```json
+{
+    "change_id": "CR1001",
+    "customer": "ABC Bank",
+    "risk": "High",
+    "status": "Scheduled",
+    "description": "Upgrade ONTAP firmware on production cluster",
+    "planned_days": 3
+}
+```
+
+This method is important for saving high-risk changes into JSON.
+
+---
+
+### Method 4: `generate_customer_notification()`
+
+Purpose:
+
+Generate a customer-friendly update message.
+
+Expected format:
+
+```text
+Dear ABC Bank,
+
+Your change request CR1001 for "Upgrade ONTAP firmware on production cluster" is currently Scheduled.
+
+Planned implementation window: within 3 days.
+Risk Level: High
+
+We will keep you updated throughout the change lifecycle.
+
+Regards,
+Enterprise Support Team
+```
+
+Rules:
+
+* Use the customer name.
+* Use the change ID.
+* Use the description.
+* Use the current status.
+* Use planned_days.
+* Use risk.
+* Message should be professional.
+* Do not overpromise.
+* Do not say the change is completed unless status is actually Completed.
+
+---
+
+# 7. managers.py Requirements
+
+Create this class:
+
+```python
+class ChangeRequestManager:
+```
+
+The manager should receive raw JSON data, meaning a list of dictionaries.
+
+Example:
+
+```python
+manager = ChangeRequestManager(change_data)
+```
+
+Inside the manager, convert dictionaries into `ChangeRequest` objects only once.
+
+Recommended attribute:
+
+```python
+self.change_requests
+```
+
+---
+
+## Required Methods
+
+### Method 1: `create_change_objects()`
+
+Input:
+
+```python
+change_data
+```
+
+Output:
+
+List of `ChangeRequest` objects.
+
+Purpose:
+
+Convert every dictionary into a `ChangeRequest` object.
+
+---
+
+### Method 2: `generate_all_summaries()`
+
+Output:
+
+List of summary strings.
+
+Example output:
+
+```json
+[
+    "CR1001 - ABC Bank - High Risk - Scheduled - Upgrade ONTAP firmware on production cluster",
+    "CR1002 - XYZ Finance - Medium Risk - In Progress - Migrate CIFS shares to new SVM"
+]
+```
+
+---
+
+### Method 3: `get_high_risk_changes()`
+
+Output:
+
+List of dictionaries for only high-risk changes.
+
+Expected high-risk changes from sample input:
+
+```json
+[
+    {
+        "change_id": "CR1001",
+        "customer": "ABC Bank",
+        "risk": "High",
+        "status": "Scheduled",
+        "description": "Upgrade ONTAP firmware on production cluster",
+        "planned_days": 3
+    },
+    {
+        "change_id": "CR1004",
+        "customer": "HealthPlus",
+        "risk": "High",
+        "status": "Scheduled",
+        "description": "Perform storage controller failover test",
+        "planned_days": 2
+    },
+    {
+        "change_id": "CR1006",
+        "customer": "Metro Telecom",
+        "risk": "High",
+        "status": "In Progress",
+        "description": "Upgrade SAN switch firmware",
+        "planned_days": 6
+    }
+]
+```
+
+---
+
+### Method 4: `generate_customer_notifications()`
+
+Output:
+
+List of customer notification strings.
+
+Example first notification:
+
+```text
+Dear ABC Bank,
+
+Your change request CR1001 for "Upgrade ONTAP firmware on production cluster" is currently Scheduled.
+
+Planned implementation window: within 3 days.
+Risk Level: High
+
+We will keep you updated throughout the change lifecycle.
+
+Regards,
+Enterprise Support Team
+```
+
+---
+
+### Method 5: `generate_cab_report()`
+
+Output:
+
+Dictionary.
+
+Expected output from sample input:
+
+```json
+{
+    "total_changes": 8,
+    "scheduled": 3,
+    "in_progress": 2,
+    "completed": 2,
+    "cancelled": 1,
+    "high_risk": 3,
+    "medium_risk": 3,
+    "low_risk": 2
+}
+```
+
+Rules:
+
+* Count total change requests.
+* Count status values.
+* Count risk values.
+* Use lowercase keys with underscores.
+* Return a dictionary, not a printed string.
+
+---
+
+# 8. file_handler.py Requirements
+
+Create a class:
+
+```python
+class Files:
+```
+
+The class should manage JSON loading and writing.
+
+## Method 1: `load_from_json()`
+
+Purpose:
+
+Read JSON data from the input file.
+
+Expected behavior:
+
+* If file exists and JSON is valid, return data.
+* If file is missing, print an error and return empty list.
+* If JSON is invalid, print an error and return empty list.
+* For any other error, print a safe error message and return empty list.
+
+Handle:
+
+```python
+FileNotFoundError
+json.JSONDecodeError
+Exception
+```
+
+---
+
+## Method 2: `dump_to_json(data, output_file)`
+
+Purpose:
+
+Write data to a JSON file.
+
+Rules:
+
+* Use `indent=4`.
+* Should accept output file path.
+* Should write lists and dictionaries.
+* Should print a success message or return nothing.
+
+---
+
+# 9. main.py Requirements
+
+Your `main.py` should be clean.
+
+It should not contain business logic.
+
+It should only control the flow.
+
+Expected flow:
+
+```text
+1. Define input file path
+2. Define output file paths
+3. Load change request data
+4. Create ChangeRequestManager object
+5. Generate CAB report
+6. Generate high-risk changes
+7. Generate customer notifications
+8. Save all three outputs
+9. Print final success message
+```
+
+Use:
+
+```python
+def main():
+```
+
+and:
+
+```python
+if __name__ == "__main__":
+    main()
+```
+
+---
+
+# 10. Required Output Files
+
+After running:
+
+```bash
+python main.py
+```
+
+Your program must create or update these files.
+
+---
+
+## Output 1: `outputs/cab_report.json`
+
+Expected:
+
+```json
+{
+    "total_changes": 8,
+    "scheduled": 3,
+    "in_progress": 2,
+    "completed": 2,
+    "cancelled": 1,
+    "high_risk": 3,
+    "medium_risk": 3,
+    "low_risk": 2
+}
+```
+
+---
+
+## Output 2: `outputs/high_risk_changes.json`
+
+Expected:
+
+```json
+[
+    {
+        "change_id": "CR1001",
+        "customer": "ABC Bank",
+        "risk": "High",
+        "status": "Scheduled",
+        "description": "Upgrade ONTAP firmware on production cluster",
+        "planned_days": 3
+    },
+    {
+        "change_id": "CR1004",
+        "customer": "HealthPlus",
+        "risk": "High",
+        "status": "Scheduled",
+        "description": "Perform storage controller failover test",
+        "planned_days": 2
+    },
+    {
+        "change_id": "CR1006",
+        "customer": "Metro Telecom",
+        "risk": "High",
+        "status": "In Progress",
+        "description": "Upgrade SAN switch firmware",
+        "planned_days": 6
+    }
+]
+```
+
+---
+
+## Output 3: `outputs/customer_notifications.json`
+
+Expected structure:
+
+```json
+[
+    "Dear ABC Bank,\n\nYour change request CR1001 for \"Upgrade ONTAP firmware on production cluster\" is currently Scheduled.\n\nPlanned implementation window: within 3 days.\nRisk Level: High\n\nWe will keep you updated throughout the change lifecycle.\n\nRegards,\nEnterprise Support Team",
+    "Dear XYZ Finance,\n\nYour change request CR1002 for \"Migrate CIFS shares to new SVM\" is currently In Progress.\n\nPlanned implementation window: within 5 days.\nRisk Level: Medium\n\nWe will keep you updated throughout the change lifecycle.\n\nRegards,\nEnterprise Support Team"
+]
+```
+
+You do not need to manually match every word perfectly, but your notification must include:
+
+* customer
+* change_id
+* description
+* status
+* planned_days
+* risk
+
+---
+
+# 11. Terminal Expected Output
+
+When the program runs successfully, terminal should show something like:
+
+```text
+CAB report generated successfully.
+High-risk changes report generated successfully.
+Customer notifications generated successfully.
+Enterprise Change Request Manager completed successfully.
+```
+
+---
+
+# 12. Error Handling Test Cases
+
+After your normal program works, test these manually.
+
+## Test 1: Missing File
+
+Rename:
+
+```text
+data/change_requests.json
+```
+
+to:
+
+```text
+data/change_requests_backup.json
+```
+
+Run:
+
+```bash
+python main.py
+```
+
+Expected:
+
+```text
+Error: data/change_requests.json was not found.
+```
+
+Program should not crash.
+
+It should return an empty list.
+
+Then rename the file back.
+
+---
+
+## Test 2: Invalid JSON
+
+Temporarily break the JSON file by removing a comma.
+
+Run:
+
+```bash
+python main.py
+```
+
+Expected:
+
+```text
+Error: Invalid JSON format in data/change_requests.json.
+```
+
+Program should not crash.
+
+Then fix the JSON.
+
+---
+
+# 13. .gitignore Requirement
+
+Create `.gitignore` with:
+
+```gitignore
+.venv/
+__pycache__/
+*.pyc
+.DS_Store
+.env
+```
+
+Do not commit:
+
+```text
+.venv/
+__pycache__/
+.DS_Store
+.env
+```
+
+---
+
+# 14. requirements.txt Requirement
+
+Since this project only uses Python standard library modules like `json`, your `requirements.txt` can be empty.
+
+Still create it:
+
+```bash
+touch requirements.txt
+```
+
+---
+
+# 15. Git Workflow
+
+Use Git from the beginning.
+
+Recommended flow:
+
+```bash
+git init
+git status
+git add .
+git commit -m "Initial project structure"
+```
+
+After completing the model:
+
+```bash
+git add .
+git commit -m "Add ChangeRequest model"
+```
+
+After completing manager logic:
+
+```bash
+git add .
+git commit -m "Add change request manager"
+```
+
+After completing file handler and main flow:
+
+```bash
+git add .
+git commit -m "Add JSON report generation"
+```
+
+After README:
+
+```bash
+git add .
+git commit -m "Add project README"
+```
+
+Push to GitHub when complete.
+
+Recommended GitHub repository name:
+
+```text
+enterprise-change-request-manager
+```
+
+---
+
+# 16. README.md Requirements
+
+Your README should include:
+
+```text
+Project title
+Project overview
+Features
+Tech stack
+Folder structure
+How to run
+Sample outputs
+Future AI enhancements
+```
+
+Future AI enhancements:
+
+```text
+OpenAI-generated CAB summaries
+AI-generated customer notifications
+RAG-based change risk analysis
+FastAPI backend
+Agent workflow for CAB automation
+```
+
+---
+
+# 17. Final Success Criteria
+
+Your project is complete only when:
+
+* `python main.py` runs successfully.
+* `cab_report.json` is generated.
+* `high_risk_changes.json` is generated.
+* `customer_notifications.json` is generated.
+* Missing file error is handled.
+* Invalid JSON error is handled.
+* `.gitignore` is present.
+* `requirements.txt` is present.
+* Code is split across files properly.
+* No major logic is dumped into `main.py`.
+* Git commits are meaningful.
+* Project is pushed to GitHub.
+
+---
+
+# 18. Important Rule
+
+Do not copy your previous Ticket Health Analyzer code line by line.
+
+You may use the same thinking pattern, but write this project fresh.
+
+The goal is to prove you can transfer your knowledge to a new enterprise-support domain.
