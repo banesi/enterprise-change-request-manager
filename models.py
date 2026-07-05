@@ -38,7 +38,7 @@ class ChangeRequest:
         return (
             f""" Dear {self.customer},
 
-                Your change request {self.change_id} for {self.description} is currently Scheduled.
+                Your change request {self.change_id} for {self.description} is currently {self.status}.
 
                 Planned implementation window: within {self.planned_days} days.
                 Risk Level: {self.risk}
